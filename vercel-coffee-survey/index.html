@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ระบบสำรวจข้อมูลกาแฟต้นน้ำและกลางน้ำ">
+  <title>Coffee Field — ระบบสำรวจข้อมูลกาแฟ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status"></div>
+  <section id="loginView" class="login-shell">
+    <div class="login-art">
+      <span class="eyebrow">COFFEE INTELLIGENCE</span>
+      <h1>เห็นทุกเรื่องราว<br>จากต้นกาแฟ</h1>
+      <p>ระบบสำรวจข้อมูลต้นน้ำ–กลางน้ำ เชื่อมต่อ Google Sheets และสรุปผลใน Dashboard เดียว</p>
+      <div class="bean bean-a">●</div><div class="bean bean-b">●</div>
+    </div>
+    <form id="loginForm" class="login-card">
+      <div class="brand"><span class="brand-mark">C</span><div><b>Coffee Field</b><small>Data Survey Platform</small></div></div>
+      <h2>เข้าสู่ระบบ</h2><p class="muted">สำหรับเจ้าหน้าที่สำรวจและผู้ดูแลระบบ</p>
+      <label>ชื่อผู้ใช้<input name="username" autocomplete="username" required placeholder="เช่น admin"></label>
+      <label>รหัสผ่าน<input name="password" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+      <button class="btn primary" type="submit">เข้าสู่ระบบ <span>→</span></button>
+      <p class="form-error" id="loginError"></p>
+    </form>
+  </section>
+
+  <div id="appView" class="app-shell hidden">
+    <aside>
+      <div class="brand light"><span class="brand-mark">C</span><div><b>Coffee Field</b><small>Survey Platform</small></div></div>
+      <nav>
+        <button data-page="dashboard" class="active"><span>◫</span> ภาพรวม</button>
+        <button data-page="survey"><span>＋</span> บันทึกแบบสำรวจ</button>
+        <button data-page="records"><span>▤</span> รายการข้อมูล</button>
+        <button data-page="users" class="admin-only"><span>♙</span> จัดการผู้ใช้</button>
+      </nav>
+      <div class="side-foot"><div class="avatar" id="avatar">A</div><div><b id="sideName">ผู้ใช้</b><small id="sideRole">เจ้าหน้าที่</small></div><button id="logoutBtn" title="ออกจากระบบ">↪</button></div>
+    </aside>
+    <main>
+      <header><div><span class="mobile-brand">Coffee Field</span><h2 id="pageTitle">ภาพรวมข้อมูลกาแฟ</h2><p id="pageSubtitle">ข้อมูลต้นน้ำและกลางน้ำจากพื้นที่สำรวจ</p></div><div class="live"><i></i> อัปเดตล่าสุด <span id="updatedAt">—</span></div></header>
+
+      <section id="dashboardPage" class="page active">
+        <div class="filter-row"><select id="dashYear"><option value="">ทุกปีข้อมูล</option></select><select id="dashProvince"><option value="">ทุกจังหวัด</option></select><button id="refreshBtn" class="btn ghost">↻ รีเฟรช</button></div>
+        <div class="metrics">
+          <article><span class="metric-icon green">♧</span><small>พื้นที่เพาะปลูก</small><strong id="mPlanted">0</strong><em>ไร่</em></article>
+          <article><span class="metric-icon gold">◒</span><small>พื้นที่เก็บเกี่ยว</small><strong id="mHarvested">0</strong><em>ไร่</em></article>
+          <article><span class="metric-icon rust">◆</span><small>ปริมาณผลผลิต</small><strong id="mProduction">0</strong><em>กก./ปี</em></article>
+          <article><span class="metric-icon blue">◎</span><small>จำนวนแบบสำรวจ</small><strong id="mRecords">0</strong><em>รายการ</em></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="panel wide"><div class="panel-head"><div><h3>ผลผลิตรายจังหวัด</h3><p>เปรียบเทียบพื้นที่และปริมาณผลผลิต</p></div></div><div id="provinceChart" class="bars empty-state">ยังไม่มีข้อมูล</div></article>
+          <article class="panel"><div class="panel-head"><div><h3>มาตรฐานการผลิต</h3><p>สัดส่วนแปลงที่ได้รับมาตรฐาน</p></div></div><div id="standardChart" class="donut-wrap empty-state">ยังไม่มีข้อมูล</div></article>
+          <article class="panel wide"><div class="panel-head"><div><h3>แหล่งรับซื้อหลัก</h3><p>ปริมาณผลผลิตตามประเภทผู้รับซื้อ</p></div></div><div id="buyerChart" class="buyer-list empty-state">ยังไม่มีข้อมูล</div></article>
+          <article class="panel"><div class="panel-head"><div><h3>ภาพรวมห่วงโซ่</h3><p>จำนวนรายการตามช่วง</p></div></div><div class="stage-cards"><div><span>ต้นน้ำ</span><b id="upstreamCount">0</b></div><div><span>กลางน้ำ</span><b id="midstreamCount">0</b></div></div></article>
+        </div>
+      </section>
+
+      <section id="surveyPage" class="page">
+        <form id="surveyForm" class="form-panel">
+          <input type="hidden" name="id">
+          <div class="section-title"><span>01</span><div><h3>ข้อมูลพื้นฐาน</h3><p>ข้อมูลผู้ให้ข้อมูลและพื้นที่สำรวจ</p></div></div>
+          <div class="form-grid">
+            <label>ชื่อผู้ให้ข้อมูล *<input name="respondentName" required maxlength="120"></label>
+            <label>ประเภทผู้ให้ข้อมูล *<select name="respondentType" required><option value="">เลือกประเภท</option><option>เกษตรกร</option><option>กลุ่มเกษตรกร/สหกรณ์</option><option>ผู้รวบรวม</option><option>ผู้แปรรูป</option><option>หน่วยงาน</option></select></label>
+            <label>เบอร์โทรศัพท์<input name="phone" maxlength="30"></label>
+            <label>ปีข้อมูล (พ.ศ.) *<input name="reportYear" type="number" min="2500" max="2700" required></label>
+            <label>จังหวัด *<input name="province" required maxlength="80"></label>
+            <label>อำเภอ *<input name="district" required maxlength="80"></label>
+            <label>ตำบล<input name="subdistrict" maxlength="80"></label>
+            <label>ชื่อแปลง/กลุ่ม/กิจการ *<input name="siteName" required maxlength="160"></label>
+          </div>
+          <div class="section-title"><span>02</span><div><h3>การผลิตและเพาะปลูก</h3><p>พื้นที่ ชนิดกาแฟ และผลผลิตประจำปี</p></div></div>
+          <div class="form-grid">
+            <label>ช่วงห่วงโซ่ *<select name="stage" required><option>ต้นน้ำ</option><option>กลางน้ำ</option></select></label>
+            <label>ชนิดกาแฟ *<select name="coffeeType" required><option>อะราบิกา</option><option>โรบัสต้า</option><option>อื่น ๆ</option></select></label>
+            <label>พื้นที่เพาะปลูก (ไร่) *<input name="plantedAreaRai" type="number" min="0" step="0.01" required></label>
+            <label>พื้นที่เก็บเกี่ยว (ไร่)<input name="harvestedAreaRai" type="number" min="0" step="0.01"></label>
+            <label>ปริมาณผลผลิต (กก./ปี) *<input name="productionKg" type="number" min="0" step="0.01" required></label>
+            <label>รูปแบบผลผลิต<select name="productForm"><option>ผลสด (เชอร์รี)</option><option>กาแฟกะลา</option><option>สารกาแฟ</option><option>เมล็ดคั่ว</option><option>กาแฟบด</option></select></label>
+          </div>
+          <div class="section-title"><span>03</span><div><h3>ตลาดและมาตรฐาน</h3><p>ช่องทางจำหน่าย ราคา และการรับรอง</p></div></div>
+          <div class="form-grid">
+            <label>แหล่งรับซื้อหลัก *<select name="buyerSource" required><option value="">เลือกแหล่งรับซื้อ</option><option>สหกรณ์/กลุ่มเกษตรกร</option><option>ผู้รวบรวมท้องถิ่น</option><option>โรงคั่ว/ผู้แปรรูป</option><option>บริษัทเอกชน</option><option>ขายตรงผู้บริโภค</option><option>อื่น ๆ</option></select></label>
+            <label>ราคาขายเฉลี่ย (บาท/กก.)<input name="averagePrice" type="number" min="0" step="0.01"></label>
+            <label>มาตรฐานการผลิต *<select name="productionStandard" required><option>ไม่ได้รับการรับรอง</option><option>GAP</option><option>Organic</option><option>GI</option><option>Fairtrade</option><option>มาตรฐานอื่น ๆ</option></select></label>
+            <label>เลขที่ใบรับรอง<input name="certificateNo" maxlength="100"></label>
+            <label class="full">ปัญหา/ความต้องการ<textarea name="challenges" rows="3" maxlength="1000"></textarea></label>
+            <label class="full">หมายเหตุเพิ่มเติม<textarea name="notes" rows="3" maxlength="1000"></textarea></label>
+          </div>
+          <div class="form-actions"><button type="button" id="resetSurvey" class="btn ghost">ล้างข้อมูล</button><button class="btn primary" type="submit">บันทึกแบบสำรวจ</button></div>
+        </form>
+      </section>
+
+      <section id="recordsPage" class="page">
+        <div class="table-panel"><div class="table-head"><div><h3>รายการแบบสำรวจ</h3><p>ค้นหาและจัดการข้อมูลที่บันทึก</p></div><input id="recordSearch" placeholder="ค้นหาชื่อ จังหวัด หรือแปลง..."></div><div class="table-scroll"><table><thead><tr><th>ผู้ให้ข้อมูล</th><th>พื้นที่</th><th>ห่วงโซ่</th><th>กาแฟ</th><th>ผลผลิต</th><th>ผู้บันทึก</th><th></th></tr></thead><tbody id="recordsBody"></tbody></table></div></div>
+      </section>
+
+      <section id="usersPage" class="page admin-only">
+        <div class="table-panel"><div class="table-head"><div><h3>ผู้ใช้งานระบบ</h3><p>เพิ่ม ปิดใช้งาน และกำหนดสิทธิ์เจ้าหน้าที่</p></div><button id="addUserBtn" class="btn primary">＋ เพิ่มผู้ใช้</button></div><div class="table-scroll"><table><thead><tr><th>ชื่อผู้ใช้</th><th>ชื่อแสดง</th><th>สิทธิ์</th><th>สถานะ</th><th></th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="userDialog"><form id="userForm" method="dialog"><h3>เพิ่มผู้ใช้งาน</h3><label>ชื่อผู้ใช้<input name="username" required pattern="[A-Za-z0-9_.-]{3,40}"></label><label>ชื่อแสดง<input name="displayName" required maxlength="100"></label><label>รหัสผ่านเริ่มต้น<input name="password" type="password" minlength="8" required></label><label>สิทธิ์<select name="role"><option value="user">เจ้าหน้าที่ (user)</option><option value="admin">ผู้ดูแล (admin)</option></select></label><div class="form-actions"><button type="button" class="btn ghost" id="closeUserDialog">ยกเลิก</button><button class="btn primary" value="default">บันทึก</button></div></form></dialog>
+  <script src="/app.js" defer></script>
+</body>
+</html>

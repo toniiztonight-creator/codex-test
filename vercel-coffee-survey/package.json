@@ -1,0 +1,9 @@
+{
+  "name": "coffee-survey-thailand",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx vercel dev",
+    "test": "node tests/validate-package.cjs"
+  }
+}

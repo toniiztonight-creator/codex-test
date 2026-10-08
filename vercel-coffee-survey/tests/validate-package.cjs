@@ -1,0 +1,13 @@
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'..');
+for(const file of ['index.html','styles.css','app.js','api/gas.js','apps-script/Code.gs','apps-script/appsscript.json','vercel.json'])assert.ok(fs.existsSync(path.join(root,file)),file+' missing');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+for(const id of ['loginForm','dashboardPage','surveyForm','recordsPage','usersPage'])assert.match(html,new RegExp(`id="${id}"`));
+const gas=fs.readFileSync(path.join(root,'apps-script/Code.gs'),'utf8');
+for(const fn of ['setupCoffeeSheet','doPost','login_','createSurvey_','updateSurvey_','deleteSurvey_','dashboard_','createUser_'])assert.match(gas,new RegExp(`function ${fn}\\(`));
+new vm.Script(gas,{filename:'Code.gs'});
+JSON.parse(fs.readFileSync(path.join(root,'apps-script/appsscript.json'),'utf8'));
+JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));
+assert.match(fs.readFileSync(path.join(root,'api/gas.js'),'utf8'),/GAS_WEB_APP_URL/);
+new vm.Script(fs.readFileSync(path.join(root,'api/gas.js'),'utf8'),{filename:'api/gas.js'});
+console.log('Package validation passed: UI, Vercel proxy, Apps Script API, and configuration files are present and syntactically valid.');

@@ -8,6 +8,21 @@ const SESSION_HOURS = 12;
 
 function setupCoffeeSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('ไม่พบ Google Sheet ที่ผูกกับโปรเจกต์ ให้ใช้ createCoffeeSheet แทน');
+  PropertiesService.getScriptProperties().setProperty('COFFEE_SHEET_ID',ss.getId());
+  return setupCoffeeSheet_(ss);
+}
+
+/** Run this from a standalone project at script.google.com to create the Sheet automatically. */
+function createCoffeeSheet() {
+  const ss = SpreadsheetApp.create('coffee test');
+  PropertiesService.getScriptProperties().setProperty('COFFEE_SHEET_ID',ss.getId());
+  setupCoffeeSheet_(ss);
+  console.log('Created coffee test: '+ss.getUrl());
+  return ss.getUrl();
+}
+
+function setupCoffeeSheet_(ss) {
   ss.rename('coffee test');
   Object.entries(SHEETS).forEach(([name, headers]) => {
     const sheet = ss.getSheetByName(name) || ss.insertSheet(name);
@@ -69,7 +84,7 @@ function login_(body) {
 function logout_(token,actor) {
   const hash = hash_(text_(token,'token',true,200),'');
   const found = findRow_('sessions',x=>x.tokenHash===hash);
-  if (found) SpreadsheetApp.getActive().getSheetByName('sessions').deleteRow(found.row);
+  if (found) db_().getSheetByName('sessions').deleteRow(found.row);
   audit_(actor.username,'LOGOUT','',{});
   return {success:true};
 }
@@ -100,7 +115,7 @@ function updateSurvey_(input,actor) {
 }
 function deleteSurvey_(id,actor) {
   requireAdmin_(actor); id=text_(id,'รหัสรายการ',true,80);
-  return locked_(()=>{const found=findRow_('surveys',x=>x.id===id);if(!found)throw new Error('ไม่พบแบบสำรวจ');SpreadsheetApp.getActive().getSheetByName('surveys').deleteRow(found.row);audit_(actor.username,'DELETE_SURVEY',id,{respondentName:found.value.respondentName});return {success:true}});
+  return locked_(()=>{const found=findRow_('surveys',x=>x.id===id);if(!found)throw new Error('ไม่พบแบบสำรวจ');db_().getSheetByName('surveys').deleteRow(found.row);audit_(actor.username,'DELETE_SURVEY',id,{respondentName:found.value.respondentName});return {success:true}});
 }
 function validateSurvey_(v) {
   if(!v||typeof v!=='object')throw new Error('ข้อมูลแบบสำรวจไม่ถูกต้อง');
@@ -126,12 +141,13 @@ function listUsers_(actor){requireAdmin_(actor);return {users:rows_('users').map
 function createUser_(v,actor){requireAdmin_(actor);if(!v)throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง');const username=text_(v.username,'ชื่อผู้ใช้',true,40).toLowerCase();if(!/^[a-z0-9_.-]{3,40}$/.test(username))throw new Error('ชื่อผู้ใช้ใช้ได้เฉพาะ a-z, 0-9, จุด ขีด และขีดล่าง');const password=text_(v.password,'รหัสผ่าน',true,200);if(password.length<8)throw new Error('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');const role=choice_(v.role,['admin','user'],'สิทธิ์');return locked_(()=>{if(rows_('users').some(x=>String(x.username).toLowerCase()===username))throw new Error('ชื่อผู้ใช้นี้มีแล้ว');const salt=random_(24),user={username,displayName:text_(v.displayName,'ชื่อแสดง',true,100),role,passwordHash:hash_(password,salt),passwordSalt:salt,active:true,createdAt:now_(),updatedAt:now_()};append_('users',user);audit_(actor.username,'CREATE_USER',username,{role});return {user:publicUser_(user)}})}
 function setUserActive_(body,actor){requireAdmin_(actor);const username=text_(body.username,'ชื่อผู้ใช้',true,40),active=body.active===true;if(username===actor.username&&!active)throw new Error('ไม่สามารถปิดบัญชีที่กำลังใช้งาน');return locked_(()=>{const found=findRow_('users',x=>x.username===username);if(!found)throw new Error('ไม่พบผู้ใช้');found.value.active=active;found.value.updatedAt=now_();writeRow_('users',found.row,found.value);audit_(actor.username,active?'ENABLE_USER':'DISABLE_USER',username,{});return {user:publicUser_(found.value)}})}
 
-function rows_(name){const sheet=SpreadsheetApp.getActive().getSheetByName(name);if(!sheet)throw new Error('ยังไม่ได้ตั้งค่าระบบ กรุณารัน setupCoffeeSheet');const headers=SHEETS[name];if(sheet.getLastRow()<2)return [];return sheet.getRange(2,1,sheet.getLastRow()-1,headers.length).getValues().filter(r=>r[0]!==''&&r[0]!=null).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i] instanceof Date?r[i].toISOString():r[i]])))}
-function append_(name,obj){const sheet=SpreadsheetApp.getActive().getSheetByName(name);sheet.appendRow(SHEETS[name].map(h=>safe_(obj[h]==null?'':obj[h])));SpreadsheetApp.flush()}
-function writeRow_(name,row,obj){const headers=SHEETS[name];SpreadsheetApp.getActive().getSheetByName(name).getRange(row,1,1,headers.length).setValues([headers.map(h=>safe_(obj[h]==null?'':obj[h]))])}
+function db_(){const id=PropertiesService.getScriptProperties().getProperty('COFFEE_SHEET_ID');const active=SpreadsheetApp.getActiveSpreadsheet();if(id)return SpreadsheetApp.openById(id);if(active)return active;throw new Error('ยังไม่ได้สร้างฐานข้อมูล กรุณารัน createCoffeeSheet')}
+function rows_(name){const sheet=db_().getSheetByName(name);if(!sheet)throw new Error('ยังไม่ได้ตั้งค่าระบบ กรุณารัน setupCoffeeSheet');const headers=SHEETS[name];if(sheet.getLastRow()<2)return [];return sheet.getRange(2,1,sheet.getLastRow()-1,headers.length).getValues().filter(r=>r[0]!==''&&r[0]!=null).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i] instanceof Date?r[i].toISOString():r[i]])))}
+function append_(name,obj){const sheet=db_().getSheetByName(name);sheet.appendRow(SHEETS[name].map(h=>safe_(obj[h]==null?'':obj[h])));SpreadsheetApp.flush()}
+function writeRow_(name,row,obj){const headers=SHEETS[name];db_().getSheetByName(name).getRange(row,1,1,headers.length).setValues([headers.map(h=>safe_(obj[h]==null?'':obj[h]))])}
 function findRow_(name,predicate){const rows=rows_(name),i=rows.findIndex(predicate);return i<0?null:{row:i+2,value:rows[i]}}
 function locked_(fn){const lock=LockService.getScriptLock();lock.waitLock(30000);try{return fn()}finally{lock.releaseLock()}}
-function cleanupSessions_(){const sheet=SpreadsheetApp.getActive().getSheetByName('sessions');if(!sheet)return;const expired=[];rows_('sessions').forEach((x,i)=>{if(new Date(x.expiresAt).getTime()<=Date.now())expired.push(i+2)});expired.reverse().forEach(r=>sheet.deleteRow(r))}
+function cleanupSessions_(){const sheet=db_().getSheetByName('sessions');if(!sheet)return;const expired=[];rows_('sessions').forEach((x,i)=>{if(new Date(x.expiresAt).getTime()<=Date.now())expired.push(i+2)});expired.reverse().forEach(r=>sheet.deleteRow(r))}
 function audit_(username,action,resourceId,details){append_('audit',{timestamp:now_(),username,action,resourceId,details:JSON.stringify(details||{})})}
 function publicUser_(u){return {username:u.username,displayName:u.displayName,role:u.role,active:truthy_(u.active),createdAt:u.createdAt,updatedAt:u.updatedAt}}
 function hash_(value,salt){return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(salt)+String(value)).map(b=>(b+256)%256).map(b=>('0'+b.toString(16)).slice(-2)).join('')}

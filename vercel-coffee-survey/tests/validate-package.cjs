@@ -4,7 +4,7 @@ for(const file of ['index.html','styles.css','app.js','api/gas.js','apps-script/
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 for(const id of ['loginForm','dashboardPage','surveyForm','recordsPage','usersPage'])assert.match(html,new RegExp(`id="${id}"`));
 const gas=fs.readFileSync(path.join(root,'apps-script/Code.gs'),'utf8');
-for(const fn of ['setupCoffeeSheet','doPost','login_','createSurvey_','updateSurvey_','deleteSurvey_','dashboard_','createUser_'])assert.match(gas,new RegExp(`function ${fn}\\(`));
+for(const fn of ['createCoffeeSheet','setupCoffeeSheet','doPost','login_','createSurvey_','updateSurvey_','deleteSurvey_','dashboard_','createUser_'])assert.match(gas,new RegExp(`function ${fn}\\(`));
 new vm.Script(gas,{filename:'Code.gs'});
 JSON.parse(fs.readFileSync(path.join(root,'apps-script/appsscript.json'),'utf8'));
 JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));

@@ -14,6 +14,16 @@
 
 ## 1. สร้าง Google Sheet และ Apps Script
 
+### วิธีอัตโนมัติ (แนะนำเมื่อ Google Drive connector ใช้งานไม่ได้)
+
+1. เปิด [script.google.com](https://script.google.com) แล้วสร้าง **New project**
+2. วางไฟล์ `apps-script/Code.gs` ในไฟล์ Code และแทน manifest ด้วย `apps-script/appsscript.json`
+3. เลือกฟังก์ชัน `createCoffeeSheet` แล้วกด Run และอนุญาตสิทธิ์
+4. เปิด Execution log ระบบจะแสดง URL ของ Google Sheet `coffee test`, username `admin` และ temporary password
+5. ทำขั้นตอน Deploy ตั้งแต่ข้อ 6 ด้านล่าง
+
+### วิธีผูกกับ Google Sheet ที่สร้างไว้แล้ว
+
 1. สร้าง Google Sheet เปล่า ตั้งชื่อ `coffee test`
 2. เปิด **ส่วนขยาย → Apps Script**
 3. วางไฟล์ `apps-script/Code.gs` ในไฟล์ Code และแทน manifest ด้วย `apps-script/appsscript.json`

@@ -1,0 +1,75 @@
+.map-panel {
+  grid-column: 1 / -1;
+}
+
+.map-count {
+  align-self: flex-start;
+  background: #e3eee6;
+  color: var(--forest);
+  border-radius: 18px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#surveyMap {
+  height: 420px;
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #eef1eb;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  line-height: 1.55;
+}
+
+.leaflet-popup-content b {
+  color: var(--forest);
+}
+
+.leaflet-popup-content small {
+  color: var(--muted);
+}
+
+.coordinate-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.coordinate-actions .btn {
+  width: auto;
+}
+
+.coordinate-actions small {
+  color: var(--muted);
+}
+
+.mock-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: #fff1cd;
+  color: #7a5a0b;
+  font-size: 10px;
+}
+
+@media (max-width: 640px) {
+  #surveyMap {
+    height: 340px;
+  }
+
+  .coordinate-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filter-row .btn {
+    white-space: nowrap;
+  }
+}

@@ -1,10 +1,24 @@
 const SHEETS = {
   users: ['username','displayName','role','passwordHash','passwordSalt','active','createdAt','updatedAt'],
   sessions: ['tokenHash','username','expiresAt','createdAt'],
-  surveys: ['id','respondentName','respondentType','phone','reportYear','province','district','subdistrict','siteName','stage','coffeeType','plantedAreaRai','harvestedAreaRai','productionKg','productForm','buyerSource','averagePrice','productionStandard','certificateNo','challenges','notes','createdBy','createdByName','createdAt','updatedAt'],
+  surveys: ['id','respondentName','respondentType','phone','reportYear','province','district','subdistrict','siteName','stage','coffeeType','plantedAreaRai','harvestedAreaRai','productionKg','productForm','buyerSource','averagePrice','productionStandard','certificateNo','challenges','notes','createdBy','createdByName','createdAt','updatedAt','latitude','longitude'],
   audit: ['timestamp','username','action','resourceId','details']
 };
 const SESSION_HOURS = 12;
+const MOCK_SURVEYS = [
+  ['doi-chang','กลุ่มตัวอย่างดอยช้าง','เชียงราย','แม่สรวย','วาวี','พื้นที่ตัวอย่างดอยช้าง','ต้นน้ำ','อะราบิกา',42,36,16200,'ผลสด (เชอร์รี)','สหกรณ์/กลุ่มเกษตรกร',28,'GI',19.848,99.497],
+  ['doi-tung','กลุ่มตัวอย่างดอยตุง','เชียงราย','แม่ฟ้าหลวง','แม่ฟ้าหลวง','พื้นที่ตัวอย่างดอยตุง','กลางน้ำ','อะราบิกา',26,24,9800,'สารกาแฟ','โรงคั่ว/ผู้แปรรูป',185,'มาตรฐานอื่น ๆ',20.288,99.783],
+  ['mae-kampong','กลุ่มตัวอย่างแม่กำปอง','เชียงใหม่','แม่ออน','ห้วยแก้ว','พื้นที่ตัวอย่างแม่กำปอง','ต้นน้ำ','อะราบิกา',18,15,6400,'กาแฟกะลา','ขายตรงผู้บริโภค',135,'Organic',18.884,99.327],
+  ['khun-wang','กลุ่มตัวอย่างขุนวาง','เชียงใหม่','แม่วาง','แม่วิน','พื้นที่ตัวอย่างขุนวาง','ต้นน้ำ','อะราบิกา',35,31,12400,'ผลสด (เชอร์รี)','สหกรณ์/กลุ่มเกษตรกร',31,'GAP',18.683,98.674],
+  ['bo-kluea','กลุ่มตัวอย่างบ่อเกลือ','น่าน','บ่อเกลือ','บ่อเกลือใต้','พื้นที่ตัวอย่างบ่อเกลือ','ต้นน้ำ','อะราบิกา',21,17,7100,'กาแฟกะลา','ผู้รวบรวมท้องถิ่น',118,'ไม่ได้รับการรับรอง',19.127,101.13],
+  ['pua','กลุ่มตัวอย่างปัว','น่าน','ปัว','ศิลาแลง','พื้นที่ตัวอย่างปัว','กลางน้ำ','อะราบิกา',14,13,5200,'เมล็ดคั่ว','ขายตรงผู้บริโภค',320,'มาตรฐานอื่น ๆ',19.148,100.967],
+  ['khao-kho','กลุ่มตัวอย่างเขาค้อ','เพชรบูรณ์','เขาค้อ','เขาค้อ','พื้นที่ตัวอย่างเขาค้อ','ต้นน้ำ','อะราบิกา',28,24,8900,'กาแฟกะลา','โรงคั่ว/ผู้แปรรูป',142,'GAP',16.631,100.999],
+  ['khao-thalu','กลุ่มตัวอย่างเขาทะลุ','ชุมพร','สวี','เขาทะลุ','พื้นที่ตัวอย่างเขาทะลุ','ต้นน้ำ','โรบัสต้า',55,49,29400,'ผลสด (เชอร์รี)','สหกรณ์/กลุ่มเกษตรกร',24,'GI',10.197,98.915],
+  ['tha-sae','กลุ่มตัวอย่างท่าแซะ','ชุมพร','ท่าแซะ','ท่าข้าม','พื้นที่ตัวอย่างท่าแซะ','กลางน้ำ','โรบัสต้า',62,58,34800,'สารกาแฟ','บริษัทเอกชน',82,'GAP',10.66,99.105],
+  ['kra-buri','กลุ่มตัวอย่างกระบุรี','ระนอง','กระบุรี','น้ำจืด','พื้นที่ตัวอย่างกระบุรี','ต้นน้ำ','โรบัสต้า',37,33,18100,'กาแฟกะลา','ผู้รวบรวมท้องถิ่น',76,'ไม่ได้รับการรับรอง',10.394,98.842],
+  ['ban-na-san','กลุ่มตัวอย่างบ้านนาสาร','สุราษฎร์ธานี','บ้านนาสาร','นาสาร','พื้นที่ตัวอย่างบ้านนาสาร','กลางน้ำ','โรบัสต้า',44,40,22600,'สารกาแฟ','บริษัทเอกชน',86,'GAP',8.812,99.359],
+  ['betong','กลุ่มตัวอย่างเบตง','ยะลา','เบตง','เบตง','พื้นที่ตัวอย่างเบตง','กลางน้ำ','โรบัสต้า',16,14,5900,'เมล็ดคั่ว','ขายตรงผู้บริโภค',285,'มาตรฐานอื่น ๆ',5.803,101.009]
+];
 
 function setupCoffeeSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -26,9 +40,14 @@ function setupCoffeeSheet_(ss) {
   ss.rename('coffee test');
   Object.entries(SHEETS).forEach(([name, headers]) => {
     const sheet = ss.getSheetByName(name) || ss.insertSheet(name);
-    if (sheet.getLastRow() === 0) sheet.getRange(1,1,1,headers.length).setValues([headers]);
-    const actual = sheet.getRange(1,1,1,headers.length).getValues()[0];
-    if (JSON.stringify(actual) !== JSON.stringify(headers)) throw new Error('หัวตารางชีต '+name+' ไม่ตรงกับระบบ');
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1,1,1,headers.length).setValues([headers]);
+    } else {
+      const columns = sheet.getLastColumn();
+      const actual = sheet.getRange(1,1,1,columns).getValues()[0];
+      if (columns > headers.length || JSON.stringify(actual) !== JSON.stringify(headers.slice(0,columns))) throw new Error('หัวตารางชีต '+name+' ไม่ตรงกับระบบ');
+      if (columns < headers.length) sheet.getRange(1,columns+1,1,headers.length-columns).setValues([headers.slice(columns)]);
+    }
     sheet.setFrozenRows(1);
     sheet.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#173d2b').setFontColor('#ffffff');
   });
@@ -42,6 +61,17 @@ function setupCoffeeSheet_(ss) {
     console.log('กรุณาจดรหัสผ่านจาก Execution log และลบ log หลังนำไปเก็บในที่ปลอดภัย');
   }
   console.log('Spreadsheet ready: '+ss.getUrl());
+}
+
+/** Run after updating Code.gs to add new columns to an existing coffee test sheet. */
+function migrateCoffeeSheet() {
+  setupCoffeeSheet_(db_());
+  console.log('Schema migration completed.');
+}
+
+/** Optional: run from the editor to add the idempotent demonstration dataset. */
+function seedMockData() {
+  return seedMockSurveys_({username:'system'});
 }
 
 function doPost(e) {
@@ -59,6 +89,7 @@ function doPost(e) {
       listSurveys: () => listSurveys_(actor),
       updateSurvey: () => updateSurvey_(body.survey,actor),
       deleteSurvey: () => deleteSurvey_(body.id,actor),
+      seedMockSurveys: () => seedMockSurveys_(actor),
       listUsers: () => listUsers_(actor),
       createUser: () => createUser_(body.user,actor),
       setUserActive: () => setUserActive_(body,actor)
@@ -117,6 +148,22 @@ function deleteSurvey_(id,actor) {
   requireAdmin_(actor); id=text_(id,'รหัสรายการ',true,80);
   return locked_(()=>{const found=findRow_('surveys',x=>x.id===id);if(!found)throw new Error('ไม่พบแบบสำรวจ');db_().getSheetByName('surveys').deleteRow(found.row);audit_(actor.username,'DELETE_SURVEY',id,{respondentName:found.value.respondentName});return {success:true}});
 }
+function seedMockSurveys_(actor) {
+  if (actor.username !== 'system') requireAdmin_(actor);
+  setupCoffeeSheet_(db_());
+  return locked_(()=>{
+    const existing=new Set(rows_('surveys').map(x=>String(x.id))), now=now_();
+    let inserted=0,skipped=0;
+    MOCK_SURVEYS.forEach(x=>{
+      const id='mock-'+x[0];
+      if(existing.has(id)){skipped++;return}
+      append_('surveys',{id,respondentName:x[1],respondentType:'กลุ่มเกษตรกร/สหกรณ์',phone:'',reportYear:2569,province:x[2],district:x[3],subdistrict:x[4],siteName:x[5],stage:x[6],coffeeType:x[7],plantedAreaRai:x[8],harvestedAreaRai:x[9],productionKg:x[10],productForm:x[11],buyerSource:x[12],averagePrice:x[13],productionStandard:x[14],certificateNo:'',challenges:'ข้อมูลตัวอย่างสำหรับทดสอบระบบ',notes:'ข้อมูลจำลอง ไม่ใช่สถิติทางการ; พิกัดเป็นตำแหน่งอ้างอิงระดับพื้นที่',createdBy:'demo',createdByName:'ชุดข้อมูลตัวอย่าง',createdAt:now,updatedAt:now,latitude:x[15],longitude:x[16]});
+      existing.add(id);inserted++;
+    });
+    if(actor.username!=='system')audit_(actor.username,'SEED_MOCK_SURVEYS','',{inserted,skipped});
+    return {inserted,skipped,total:MOCK_SURVEYS.length};
+  });
+}
 function validateSurvey_(v) {
   if(!v||typeof v!=='object')throw new Error('ข้อมูลแบบสำรวจไม่ถูกต้อง');
   const planted=number_(v.plantedAreaRai,'พื้นที่เพาะปลูก',true), harvested=number_(v.harvestedAreaRai,'พื้นที่เก็บเกี่ยว',false);
@@ -125,7 +172,7 @@ function validateSurvey_(v) {
   return {
     respondentName:text_(v.respondentName,'ชื่อผู้ให้ข้อมูล',true,120),respondentType:choice_(v.respondentType,['เกษตรกร','กลุ่มเกษตรกร/สหกรณ์','ผู้รวบรวม','ผู้แปรรูป','หน่วยงาน'],'ประเภทผู้ให้ข้อมูล'),phone:text_(v.phone,'เบอร์โทรศัพท์',false,30),reportYear:year,
     province:text_(v.province,'จังหวัด',true,80),district:text_(v.district,'อำเภอ',true,80),subdistrict:text_(v.subdistrict,'ตำบล',false,80),siteName:text_(v.siteName,'ชื่อแปลง/กลุ่ม/กิจการ',true,160),stage:choice_(v.stage,['ต้นน้ำ','กลางน้ำ'],'ช่วงห่วงโซ่'),coffeeType:choice_(v.coffeeType,['อะราบิกา','โรบัสต้า','อื่น ๆ'],'ชนิดกาแฟ'),
-    plantedAreaRai:planted,harvestedAreaRai:harvested,productionKg:number_(v.productionKg,'ปริมาณผลผลิต',true),productForm:choice_(v.productForm,['ผลสด (เชอร์รี)','กาแฟกะลา','สารกาแฟ','เมล็ดคั่ว','กาแฟบด'],'รูปแบบผลผลิต'),buyerSource:choice_(v.buyerSource,['สหกรณ์/กลุ่มเกษตรกร','ผู้รวบรวมท้องถิ่น','โรงคั่ว/ผู้แปรรูป','บริษัทเอกชน','ขายตรงผู้บริโภค','อื่น ๆ'],'แหล่งรับซื้อ'),averagePrice:number_(v.averagePrice,'ราคาขายเฉลี่ย',false),productionStandard:choice_(v.productionStandard,['ไม่ได้รับการรับรอง','GAP','Organic','GI','Fairtrade','มาตรฐานอื่น ๆ'],'มาตรฐานการผลิต'),certificateNo:text_(v.certificateNo,'เลขที่ใบรับรอง',false,100),challenges:text_(v.challenges,'ปัญหา/ความต้องการ',false,1000),notes:text_(v.notes,'หมายเหตุ',false,1000)
+    plantedAreaRai:planted,harvestedAreaRai:harvested,productionKg:number_(v.productionKg,'ปริมาณผลผลิต',true),productForm:choice_(v.productForm,['ผลสด (เชอร์รี)','กาแฟกะลา','สารกาแฟ','เมล็ดคั่ว','กาแฟบด'],'รูปแบบผลผลิต'),buyerSource:choice_(v.buyerSource,['สหกรณ์/กลุ่มเกษตรกร','ผู้รวบรวมท้องถิ่น','โรงคั่ว/ผู้แปรรูป','บริษัทเอกชน','ขายตรงผู้บริโภค','อื่น ๆ'],'แหล่งรับซื้อ'),averagePrice:number_(v.averagePrice,'ราคาขายเฉลี่ย',false),productionStandard:choice_(v.productionStandard,['ไม่ได้รับการรับรอง','GAP','Organic','GI','Fairtrade','มาตรฐานอื่น ๆ'],'มาตรฐานการผลิต'),certificateNo:text_(v.certificateNo,'เลขที่ใบรับรอง',false,100),challenges:text_(v.challenges,'ปัญหา/ความต้องการ',false,1000),notes:text_(v.notes,'หมายเหตุ',false,1000),latitude:coordinate_(v.latitude,'Latitude',-90,90),longitude:coordinate_(v.longitude,'Longitude',-180,180)
   };
 }
 
@@ -134,7 +181,8 @@ function dashboard_(body,actor) {
   const year=String(body.year||''),province=String(body.province||'');
   const all=records.slice(); if(year)records=records.filter(x=>String(x.reportYear)===year);if(province)records=records.filter(x=>x.province===province);
   const totals={records:records.length,plantedAreaRai:sum_(records,'plantedAreaRai'),harvestedAreaRai:sum_(records,'harvestedAreaRai'),productionKg:sum_(records,'productionKg')};
-  return {totals,filters:{years:unique_(all.map(x=>x.reportYear)).sort().reverse(),provinces:unique_(all.map(x=>x.province)).sort()},provinces:group_(records,'province').map(g=>({province:g.key,plantedAreaRai:sum_(g.rows,'plantedAreaRai'),productionKg:sum_(g.rows,'productionKg')})).sort((a,b)=>b.productionKg-a.productionKg),standards:group_(records,'productionStandard').map(g=>({name:g.key,count:g.rows.length})).sort((a,b)=>b.count-a.count),buyers:group_(records,'buyerSource').map(g=>({name:g.key,productionKg:sum_(g.rows,'productionKg')})).sort((a,b)=>b.productionKg-a.productionKg),stages:Object.fromEntries(group_(records,'stage').map(g=>[g.key,g.rows.length]))};
+  const locations=records.filter(x=>x.latitude!==''&&x.longitude!==''&&Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))).map(x=>({id:x.id,siteName:x.siteName,province:x.province,district:x.district,coffeeType:x.coffeeType,productionKg:Number(x.productionKg)||0,latitude:Number(x.latitude),longitude:Number(x.longitude),isMock:String(x.id).indexOf('mock-')===0}));
+  return {totals,filters:{years:unique_(all.map(x=>x.reportYear)).sort().reverse(),provinces:unique_(all.map(x=>x.province)).sort()},provinces:group_(records,'province').map(g=>({province:g.key,plantedAreaRai:sum_(g.rows,'plantedAreaRai'),productionKg:sum_(g.rows,'productionKg')})).sort((a,b)=>b.productionKg-a.productionKg),standards:group_(records,'productionStandard').map(g=>({name:g.key,count:g.rows.length})).sort((a,b)=>b.count-a.count),buyers:group_(records,'buyerSource').map(g=>({name:g.key,productionKg:sum_(g.rows,'productionKg')})).sort((a,b)=>b.productionKg-a.productionKg),stages:Object.fromEntries(group_(records,'stage').map(g=>[g.key,g.rows.length])),locations};
 }
 
 function listUsers_(actor){requireAdmin_(actor);return {users:rows_('users').map(publicUser_)}}
@@ -159,6 +207,7 @@ function truthy_(v){return v===true||String(v).toLowerCase()==='true'}
 function text_(v,label,required,max){const s=String(v==null?'':v).trim();if(required&&!s)throw new Error('กรุณาระบุ '+label);if(s.length>(max||500))throw new Error(label+' ยาวเกินกำหนด');return s}
 function choice_(v,options,label){const s=text_(v,label,true,200);if(!options.includes(s))throw new Error(label+' ไม่ถูกต้อง');return s}
 function number_(v,label,required){if(v===''||v==null){if(required)throw new Error('กรุณาระบุ '+label);return ''}const n=Number(v);if(!Number.isFinite(n)||n<0)throw new Error(label+' ต้องเป็นเลขไม่ติดลบ');return n}
+function coordinate_(v,label,min,max){if(v===''||v==null)throw new Error('กรุณาระบุ '+label);const n=Number(v);if(!Number.isFinite(n)||n<min||n>max)throw new Error(label+' ต้องอยู่ระหว่าง '+min+' ถึง '+max);return Math.round(n*1000000)/1000000}
 function unique_(items){return [...new Set(items.filter(x=>x!==''&&x!=null))]}
 function sum_(rows,key){return rows.reduce((n,x)=>n+(Number(x[key])||0),0)}
 function group_(rows,key){const map={};rows.forEach(x=>{const k=String(x[key]||'ไม่ระบุ');(map[k]||(map[k]=[])).push(x)});return Object.entries(map).map(([key,rows])=>({key,rows}))}
